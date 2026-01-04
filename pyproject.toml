@@ -1,0 +1,51 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mobi-bot"
+version = "0.0.0"
+description = "MobiBot: convert videos, podcasts, and articles into e-reader-friendly formats"
+readme = "README.md"
+requires-python = "==3.10.*"
+license = { file = "LICENSE" }
+authors = [{ name = "MobiBot Contributors" }]
+dependencies = [
+    "ollama",
+    "requests",
+    "markdown",
+    "beautifulsoup4",
+    "pylatexenc",
+    "dacite",
+    "pillow",
+    "latex2mathml",
+    "tqdm",
+    "docker",
+    "omegaconf"
+]
+
+[project.optional-dependencies]
+dev = ["ruff"]
+
+[tool.uv]
+managed = true
+python-preference = "only-managed"
+python-downloads = "automatic"
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra"
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+extend-exclude = [".venv", "venv", "build", "dist"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"

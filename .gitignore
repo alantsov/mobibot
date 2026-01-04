@@ -1,0 +1,10 @@
+.env
+.idea/
+/data/
+/output/
+/.venv/
+/test_output/*
+/src/mobi_bot.egg-info/
+/models/
+/config.yaml
+__pycache__

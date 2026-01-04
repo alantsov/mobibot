@@ -1,0 +1,1 @@
+FROM pandoc/core:2.19
