@@ -24,6 +24,12 @@ dependencies = [
     "omegaconf"
 ]
 
+[project.scripts]
+mobibot = "src.cli:main"
+
+[tool.setuptools]
+packages = ["src", "src.controllers", "src.helpers", "src.loaders", "src.wrappers"]
+
 [project.optional-dependencies]
 dev = ["ruff"]
 
