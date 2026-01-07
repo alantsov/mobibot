@@ -14,6 +14,29 @@ logging.getLogger("httpcore").setLevel(logging.WARNING)
 
 OLLAMA_PORT = 11434
 
+REQUIRED_MODELS = {
+    "hy-mt1.5-7b:q8": {
+        "from": "hf.co/tencent/HY-MT1.5-7B-GGUF:Q8_0",
+        "template": '{{ if .System }}<|startoftext|>{{ .System }}<|extra_4|>{{ end }}{{ if .Prompt }}<|startoftext|>{{ .Prompt }}<|extra_0|>{{ end }}{{ .Response }}<|eos|>',
+        "options": {
+            "top_k": 20,
+            "top_p": 0.6,
+            "repetition_penalty": 1.05,
+            "temperature": 0.7,
+        },
+    },
+    "hy-mt1.5-7b:q4": {
+        "from": "hf.co/tencent/HY-MT1.5-7B-GGUF:Q4_K_M",
+        "template": '{{ if .System }}<|startoftext|>{{ .System }}<|extra_4|>{{ end }}{{ if .Prompt }}<|startoftext|>{{ .Prompt }}<|extra_0|>{{ end }}{{ .Response }}<|eos|>',
+        "options": {
+            "top_k": 20,
+            "top_p": 0.6,
+            "repetition_penalty": 1.05,
+            "temperature": 0.7,
+        },
+    },
+}
+
 
 def set_ollama_port(port):
     global OLLAMA_PORT
@@ -22,6 +45,11 @@ def set_ollama_port(port):
 
 def get_ollama_base():
     return f"http://localhost:{OLLAMA_PORT}"
+
+
+def _create_model(client, model_name, from_model, template):
+    logger.info("Creating model %s from %s", model_name, from_model)
+    client.create(model=model_name, from_=from_model, template=template)
 
 
 def _load_model(client, model_name):
@@ -88,11 +116,21 @@ def _call_ollama_chat(
         message["images"] = images
 
     options = {"temperature": temperature, "max_tokens": max_tokens, "num_predict": num_predict}
+    if model_name in REQUIRED_MODELS:
+        options.update(REQUIRED_MODELS[model_name].get("options", {}))
 
     client = ollama.Client(host=get_ollama_base())
     if model_name not in list(map(lambda x: x.model, client.list().models)):
-        logger.debug("model %s not found, downloading...", model_name)
-        _load_model(client, model_name)
+        if model_name in REQUIRED_MODELS:
+            _create_model(
+                client,
+                model_name,
+                REQUIRED_MODELS[model_name]["from"],
+                REQUIRED_MODELS[model_name]["template"],
+            )
+        else:
+            logger.debug("model %s not found, downloading...", model_name)
+            _load_model(client, model_name)
 
     json_res = client.chat(
         model=model_name,
@@ -458,16 +496,7 @@ Return your answer strictly as JSON that matches the provided schema.
 
 
 def translate(text, language="ru", language_to="english"):
-    # recommended settings
-    """
-    {
-      "top_k": 20,
-      "top_p": 0.6,
-      "repetition_penalty": 1.05,
-      "temperature": 0.7
-    }
-    """
-    model = "huihui_ai/hunyuan-mt-abliterated:7b"
+    model = "hy-mt1.5-7b:q4"
     if language == "zh":
         prompt = f"""把下面的文本翻译成英语，不要额外解释。
 
@@ -478,7 +507,7 @@ Translate the following segment into {language_to}, without additional explanati
 
 {text}
 """
-    result = _call_ollama_chat(prompt, model=model, temperature=0.0)
+    result = _call_ollama_chat(prompt, model=model)
     logger.debug("text: %s", text)
     logger.debug("result: %s", result)
     return result
