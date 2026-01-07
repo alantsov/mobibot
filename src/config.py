@@ -14,6 +14,7 @@ class AppConfig:
     use_whisper_prompt: bool = False
     diarize: bool = False
     simplify_transcript: bool = False
+    fix_grammar: bool = False
 
 
 CONFIG: AppConfig | None = None

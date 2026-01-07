@@ -35,6 +35,7 @@ def parse_args():
     parser.add_argument(
         "--simplify-transcript", action="store_true", help="Simplify transcript (default: disabled)"
     )
+    parser.add_argument('--fix-grammar', action='store_true', help='Fix grammar (default: disabled)')
     parser.add_argument(
         "--config", help="yaml file with configuration overrides", default="config.yaml"
     )

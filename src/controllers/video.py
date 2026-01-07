@@ -4,6 +4,8 @@ import os
 import random
 from dataclasses import dataclass
 
+from tqdm import tqdm
+
 import src.helpers.html_helper as html_helper
 import src.helpers.text_helper as text_helper
 import src.wrappers.ollama_wrapper as ollama_wrapper
@@ -84,7 +86,9 @@ class Video:
         None  # Chapter dataclass, chapters or llm generated subtitles
     )
     model: list | None = None  # [h1, h2, p, img]
+    joined_model: list | None = None
     processed_model: list | None = None  # [h1, h2, p, img] fixed errors, rejoin p
+    translated_model: list | None = None
     cover_filename: str | None = None
     html_filename: str | None = None
     translated_html_filename: str | None = None
@@ -338,31 +342,40 @@ def get_pipeline():
             ],
             ["model"],
         ),
+        PipelineStage(join_paragraphs,
+                      ["model"],
+                      ["joined_model"]),
         PipelineStage(
             process_model,
-            ["model", "language"],
+            ["joined_model", "language"],
             ["processed_model"],
             resources=[OLLAMA_RES, LT_RES],
+            enabled=get_config().fix_grammar,
+        ),
+        PipelineStage(
+            copy_arguments,
+            ["joined_model"],
+            ["processed_model"],
+            enabled=not get_config().fix_grammar,
+            _given_name="process_model",
+        ),
+        PipelineStage(translate_model,
+                      ["processed_model", "language"],
+                      ["translated_model"],
+                      resources=[OLLAMA_RES],
+                      enabled=get_config().translate_to is not None),
+        PipelineStage(
+            copy_arguments,
+            ["processed_model"],
+            ["translated_model"],
+            enabled=get_config().translate_to is None,
+            _given_name="translate_model",
         ),
         # Output Generation
         PipelineStage(
             select_cover, ["images_dir", "selected_images", "video_url"], ["cover_filename"]
         ),
-        PipelineStage(model_to_html, ["processed_model", "title"], ["html_filename"]),
-        PipelineStage(
-            html_helper.translate_html_file,
-            ["html_filename"],
-            ["translated_html_filename"],
-            resources=[OLLAMA_RES],
-            enabled=get_config().translate_to is not None,
-        ),
-        PipelineStage(
-            copy_arguments,
-            ["html_filename"],
-            ["translated_html_filename"],
-            enabled=get_config().translate_to is None,
-            _given_name="translate_html_file",
-        ),
+        PipelineStage(model_to_html, ["translated_model", "title"], ["html_filename"]),
         PipelineStage(create_output_filename, ["title"], ["output_filename"]),
         PipelineStage(
             pillow_wrapper.create_cover,
@@ -372,7 +385,7 @@ def get_pipeline():
         PipelineStage(
             calibre_wrapper.convert_book,
             [
-                "translated_html_filename",
+                "html_filename",
                 "output_filename",
                 "cwd",
                 "prepared_cover",
@@ -679,14 +692,25 @@ def create_initial_model(title, final_chapters, sentence_segments, images_with_s
 
 
 def process_model(model, language):
-    new_model = join_paragraphs(model)
     newer_model = []
-    for item in new_model:
+    for item in model:
         if item[0] == "p":
             old_text = item[1]
             speaker_id = item[2] if len(item) > 2 else None
             text = fix_grammar_with_llm(old_text, language)
             newer_model.append(("p", text, speaker_id))
+        else:
+            newer_model.append(item)
+    return newer_model
+
+def translate_model(model, language):
+    newer_model = []
+    for item in tqdm(model, desc="Translating model"):
+        if item[0] in ["p", "h1", "h2"]:
+            old_text = item[1]
+            speaker_id = item[2] if len(item) > 2 else None
+            text = ollama_wrapper.translate(old_text, language, language_to=get_config().translate_to)
+            newer_model.append((item[0], text, speaker_id))
         else:
             newer_model.append(item)
     return newer_model
