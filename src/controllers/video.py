@@ -705,11 +705,17 @@ def process_model(model, language):
 
 def translate_model(model, language):
     newer_model = []
+    previous_blocks = []
     for item in tqdm(model, desc="Translating model"):
         if item[0] in ["p", "h1", "h2"]:
             old_text = item[1]
             speaker_id = item[2] if len(item) > 2 else None
-            text = ollama_wrapper.translate(old_text, language, language_to=get_config().translate_to)
+            context = '\n\n'.join(previous_blocks) if item[0] == "p" and len(previous_blocks) else None
+            text = ollama_wrapper.translate(old_text, language, language_to=get_config().translate_to, context=context)
+            if item[0] == "p":
+                previous_blocks = previous_blocks + [old_text]
+                if len(previous_blocks) > 2:
+                    previous_blocks = previous_blocks[1:]
             newer_model.append((item[0], text, speaker_id))
         else:
             newer_model.append(item)

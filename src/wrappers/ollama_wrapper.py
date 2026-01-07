@@ -495,18 +495,69 @@ Return your answer strictly as JSON that matches the provided schema.
     return chosen_key
 
 
-def translate(text, language="ru", language_to="english"):
+def translate(text, language="ru", language_to="english", context=None):
+    # prompts from model page https://huggingface.co/tencent/HY-MT1.5-7B-GGUF
+    languages = {
+  "zh": "中文",
+  "en": "英语",
+  "fr": "法语",
+  "pt": "葡萄牙语",
+  "es": "西班牙语",
+  "ja": "日语",
+  "tr": "土耳其语",
+  "ru": "俄语",
+  "ar": "阿拉伯语",
+  "ko": "韩语",
+  "th": "泰语",
+  "it": "意大利语",
+  "de": "德语",
+  "vi": "越南语",
+  "ms": "马来语",
+  "id": "印尼语",
+  "tl": "菲律宾语",
+  "hi": "印地语",
+  "zh-Hant": "繁体中文",
+  "pl": "波兰语",
+  "cs": "捷克语",
+  "nl": "荷兰语",
+  "km": "高棉语",
+  "my": "缅甸语",
+  "fa": "波斯语",
+  "gu": "古吉拉特语",
+  "ur": "乌尔都语",
+  "te": "泰卢固语",
+  "mr": "马拉地语",
+  "he": "希伯来语",
+  "bn": "孟加拉语",
+  "ta": "泰米尔语",
+  "uk": "乌克兰语",
+  "bo": "藏语",
+  "kk": "哈萨克语",
+  "mn": "蒙古语",
+  "ug": "维吾尔语",
+  "yue": "粤语"
+}
+
+
     model = "hy-mt1.5-7b:q4"
     if language == "zh":
-        prompt = f"""把下面的文本翻译成英语，不要额外解释。
+        prompt = f"""把下面的文本翻译成{languages.get(language_to, 'en')}，不要额外解释。
 
 {text}"""
-    else:
+    elif not context:
         prompt = f"""
 Translate the following segment into {language_to}, without additional explanation.
 
 {text}
 """
+        prompt = prompt.strip()
+    else:
+        prompt = f"""
+{context}
+参考上面的信息，把下面的文本翻译成{languages.get(language_to, 'en')}，注意不需要翻译上文，也不要额外解释：
+{text}
+"""
+        prompt = prompt.strip()
     result = _call_ollama_chat(prompt, model=model)
     logger.debug("text: %s", text)
     logger.debug("result: %s", result)
