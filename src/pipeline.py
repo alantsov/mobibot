@@ -54,6 +54,7 @@ class PipelineStage:
     enabled: bool = True
     resources: list[PipelineResource] = field(default_factory=list)
     _given_name: str = None
+    critical: bool = False
 
     @property
     def name(self):
@@ -114,7 +115,11 @@ def fold_pipeline(pipeline: list[PipelineStage], video):
             print(f"args: {args_text}")
             logger.debug(traceback.format_exc())
             index += 1
-            continue
+            if stage.critical:
+                print("Critical stage failed, aborting")
+                break
+            else:
+                continue
     video_json = asdict(current_video)
     log_filename = generate_random_filename(
         "pipeline_state_" + video.__class__.__name__.lower(), "json"

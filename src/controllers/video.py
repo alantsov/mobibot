@@ -224,11 +224,13 @@ def get_pipeline():
                 "sponsor_segments",
                 "dlp_language",
             ],
+            critical=True,
         ),
         PipelineStage(
             split_video,
             ["video_file_name_without_ads"],
             ["audio_filename", "images_dir", "duration_in_seconds"],
+            critical=True,
         ),
         PipelineStage(
             guess_language, ["title", "description", "author", "dlp_language"], ["language"]
@@ -282,11 +284,13 @@ def get_pipeline():
             src.wrappers.whisperx_wrapper.audio_to_json,
             ["audio_filename", "language", "whisper_prompt"],
             ["json_transcript_filename"],
+            critical=True,
         ),
         PipelineStage(
             join_transcription_and_diarization,
             ["json_transcript_filename", "json_diarization_filename"],
             ["sentence_segments"],
+            critical=True,
         ),
         PipelineStage(
             simplify_sentences,
