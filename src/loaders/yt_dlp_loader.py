@@ -14,12 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 def yt_dlp_with_auto_dubbing(video_url):
-    suffix = ["-f", "worstvideo+bestaudio[format_note*=original]", video_url]
-    return download_video_and_metainfo(video_url, suffix)
-
-
-def yt_dlp_without_auto_dubbing(video_url):
-    suffix = ["-f", "worstvideo+bestaudio", video_url]
+    suffix = ["-f", "worstvideo+bestaudio[format_note*=original]/worstvideo+bestaudio", video_url]
     return download_video_and_metainfo(video_url, suffix)
 
 
