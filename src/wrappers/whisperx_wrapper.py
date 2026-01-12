@@ -1,8 +1,10 @@
+import logging
 import os
 import subprocess
 
 from src.wrappers import docker_wrapper
 
+logger = logging.getLogger(__name__)
 
 def audio_to_json(input_name, language="ru", prompt=None):
     pwd = subprocess.run(["pwd"], capture_output=True, text=True, check=True).stdout.strip()
@@ -32,6 +34,8 @@ def audio_to_json(input_name, language="ru", prompt=None):
     command += [container_input_path]
     result = docker_wrapper.run_docker_container("whisperx", command)
     if result.returncode != 0:
+        logger.error(result.stdout)
+        logger.error(result.stderr)
         raise RuntimeError("WhisperX processing failed")
     output_json = os.path.splitext(input_name)[0] + ".json"
     return output_json
