@@ -408,6 +408,8 @@ def process_video_object(video):
 
 
 def guess_language(text1, text2, text3, dlp_language):
+    if dlp_language:
+        return dlp_language
     text = ""
     if text1:
         text += text1
