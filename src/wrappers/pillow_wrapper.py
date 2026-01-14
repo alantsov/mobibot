@@ -87,7 +87,7 @@ def create_cover(base_image_path, title, author, cwd=None):
     try:
         title_font = ImageFont.truetype("DejaVuSans.ttf", size=150)
         author_font = ImageFont.truetype("DejaVuSans.ttf", size=120)
-    except TypeError:  # Fallback for older Pillow versions (no size param)
+    except:  # Fallback for older Pillow versions (no size param)
         title_font = ImageFont.load_default()
         author_font = ImageFont.load_default()
 
