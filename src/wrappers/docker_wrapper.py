@@ -13,6 +13,24 @@ logger = logging.getLogger(__name__)
 _client = None
 
 
+def _is_gpu_available():
+    """Checks if NVIDIA GPU support is available in the local Docker daemon."""
+    client = _get_docker_client()
+    try:
+        info = client.info()
+        # Check if 'nvidia' is in the list of available runtimes
+        runtimes = info.get("Runtimes", {})
+        logger.debug("Runtimes: %s", runtimes)
+        if "nvidia" in runtimes:
+            return True
+        # Alternative check: look for NVIDIA in the driver or system info
+        # (Useful for some Docker Desktop versions)
+        return "nvidia" in str(info).lower()
+    except Exception as e:
+        logger.debug(f"Failed to check GPU availability: {e}")
+        return False
+
+
 def _get_docker_client():
     global _client
     if _client is None:
@@ -55,9 +73,14 @@ class ManagedDockerService:
                 self.config.volumes
             )  # each str in list formatted as host_path:container_path
         if self.config.use_gpu:
-            run_config["device_requests"] = [
-                docker.types.DeviceRequest(count=-1, capabilities=[["gpu"]])
-            ]
+            if _is_gpu_available():
+                run_config["device_requests"] = [
+                    docker.types.DeviceRequest(count=-1, capabilities=[["gpu"]])
+                ]
+            else:
+                logger.warning(
+                    f"GPU requested for {self.service_name}, but NVIDIA Docker runtime not detected. Falling back to CPU."
+                )
         try:
             self.container = self.client.containers.run(self.config.image_name, **run_config)
         except APIError as e:
@@ -85,7 +108,12 @@ def run_docker_container(
     _ensure_docker_image(docker_config.image_name, container_name)
     docker_arguments = []
     if docker_config.use_gpu:
-        docker_arguments += ["--gpus=all"]
+        if _is_gpu_available():
+            docker_arguments += ["--gpus=all"]
+        else:
+            logger.warning(
+                f"GPU requested for {container_name}, but NVIDIA Docker runtime not detected. Falling back to CPU."
+            )
     if docker_config.volumes:
         for volume in docker_config.volumes:
             docker_arguments += ["-v", volume]
