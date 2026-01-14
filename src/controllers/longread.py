@@ -27,7 +27,7 @@ from src.pipeline import (
     run_with_resources,
 )
 from src.wrappers import calibre_wrapper, ollama_wrapper, pillow_wrapper, readability_wrapper
-from src.wrappers.docker_wrapper import ManagedDockerService
+from src.wrappers.docker_wrapper import ManagedDockerService, NoManagedService
 
 
 @dataclass
@@ -49,9 +49,21 @@ class Longread:
     cwd: str | None = "data"
 
 
+def _ollama_factory():
+    cfg = get_config()
+    if cfg and cfg.ollama_url:
+        return NoManagedService()
+    return ManagedDockerService("ollama")
+
+
+def _ollama_setup(service):
+    if service.port:
+        ollama_wrapper.set_ollama_port(service.port)
+
+
 OLLAMA_RES = PipelineResource(
-    factory=lambda: ManagedDockerService("ollama"),
-    setup=lambda service: ollama_wrapper.set_ollama_port(service.port),
+    factory=_ollama_factory,
+    setup=_ollama_setup,
 )
 READABILITY_RES = PipelineResource(
     factory=lambda: ManagedDockerService("readability"),

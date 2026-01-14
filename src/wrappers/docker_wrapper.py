@@ -100,6 +100,17 @@ class ManagedDockerService:
                 pass
 
 
+class NoManagedService:
+    def __init__(self):
+        self.port = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+
 # for docker containers like whisperx: mount directory
 def run_docker_container(
     container_name, container_arguments, capture_output=True

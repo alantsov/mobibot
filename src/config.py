@@ -15,6 +15,7 @@ class AppConfig:
     diarize: bool = False
     simplify_transcript: bool = False
     fix_grammar: bool = False
+    ollama_url: str | None = None
 
 
 CONFIG: AppConfig | None = None

@@ -29,6 +29,7 @@ def parse_args():
         "--translate-to", help="Translate to English (en) or Russian (ru), default: no translation"
     )
     parser.add_argument("--output-format", help="epub | mobi | txt")
+    parser.add_argument("--ollama-url", help="Ollama API URL, e.g --ollama-url http://localhost:11434")
     parser.add_argument(
         "--diarize", action="store_true", help="Enable diarization (default: disabled)"
     )

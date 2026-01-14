@@ -24,15 +24,27 @@ from src.wrappers import (
     poppler_wrapper,
     tiktoken_wrapper,
 )
-from src.wrappers.docker_wrapper import ManagedDockerService
+from src.wrappers.docker_wrapper import ManagedDockerService, NoManagedService
 from src.wrappers.pandoc_wrapper import _run_pandoc_in_docker
 
 logger = logging.getLogger(__name__)
 
 # Resource dependency definitions
+def _ollama_factory():
+    cfg = get_config()
+    if cfg and cfg.ollama_url:
+        return NoManagedService()
+    return ManagedDockerService("ollama")
+
+
+def _ollama_setup(service):
+    if service.port:
+        ollama_wrapper.set_ollama_port(service.port)
+
+
 OLLAMA_RES = PipelineResource(
-    factory=lambda: ManagedDockerService("ollama"),
-    setup=lambda service: ollama_wrapper.set_ollama_port(service.port),
+    factory=_ollama_factory,
+    setup=_ollama_setup,
 )
 TIKTOKEN_RES = PipelineResource(
     factory=lambda: ManagedDockerService("tiktoken"),

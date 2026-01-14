@@ -32,7 +32,7 @@ from src.wrappers import (
     pymorphy3_wrapper,
     wespeaker_wrapper,
 )
-from src.wrappers.docker_wrapper import ManagedDockerService
+from src.wrappers.docker_wrapper import ManagedDockerService, NoManagedService
 from src.wrappers.ffmpeg_wrapper import (
     _probe_audio_codec,
     _probe_duration_seconds,
@@ -43,9 +43,21 @@ from src.wrappers.ollama_wrapper import generate_title
 logger = logging.getLogger(__name__)
 
 # Resource definitions for PipelineStage
+def _ollama_factory():
+    cfg = get_config()
+    if cfg and cfg.ollama_url:
+        return NoManagedService()
+    return ManagedDockerService("ollama")
+
+
+def _ollama_setup(service):
+    if service.port:
+        ollama_wrapper.set_ollama_port(service.port)
+
+
 OLLAMA_RES = PipelineResource(
-    factory=lambda: ManagedDockerService("ollama"),
-    setup=lambda service: ollama_wrapper.set_ollama_port(service.port),
+    factory=_ollama_factory,
+    setup=_ollama_setup,
 )
 
 LT_RES = PipelineResource(

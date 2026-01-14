@@ -3,6 +3,7 @@ import logging
 import re
 
 import ollama
+import src.config as config
 from pydantic import BaseModel
 from tqdm import tqdm
 
@@ -44,6 +45,9 @@ def set_ollama_port(port):
 
 
 def get_ollama_base():
+    cfg = config.get_config()
+    if cfg and cfg.ollama_url:
+        return cfg.ollama_url
     return f"http://localhost:{OLLAMA_PORT}"
 
 
