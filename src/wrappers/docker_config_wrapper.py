@@ -87,7 +87,7 @@ def get_containers_config(svc: str) -> DockerConfig:
 
     wespeaker_config = DockerConfig(
         name="wespeaker",
-        image_name=f"{PROJECT_PREFIX}/wespeaker:1.0.7",
+        image_name=f"{PROJECT_PREFIX}/wespeaker:1.0.8",
         use_gpu=True,
         volumes=[f"{DATA_DIR}:/data"],
         work_dir="/data",

@@ -27,7 +27,8 @@ RUN pip install --upgrade pip && \
         torchaudio==2.4.1
 
 # WeSpeaker
-RUN pip install --no-cache-dir "git+https://github.com/wenet-e2e/wespeaker.git"
+RUN pip install --no-cache-dir "git+https://github.com/wenet-e2e/wespeaker.git@7d7b707e927ad5cebfeb4ab4877c69fc64632bb2"
+RUN pip install --no-cache-dir "scikit-learn<1.6.0" "umap-learn" "hdbscan"
 
 # App code
 WORKDIR /app
