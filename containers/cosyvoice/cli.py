@@ -9,7 +9,7 @@ import torch
 MODEL_DIR = "/models"
 DATA_DIR = "/data"
 
-def ru_long_stable(text, output_path):
+def tts(text, output_path):
     cosyvoice = AutoModel(model_dir='pretrained_models/Fun-CosyVoice3-0.5B')
 
     pause_sec = 0.6
@@ -71,7 +71,7 @@ if __name__ == "__main__":
 
     tmp_wav = output_path + ".tmp.wav"
 
-    ru_long(text, tmp_wav)
+    tts(text, tmp_wav)
     convert_audio(tmp_wav, output_path)
 
     print("Done:", output_path)
