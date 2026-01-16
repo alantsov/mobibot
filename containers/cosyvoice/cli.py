@@ -63,7 +63,7 @@ def convert_audio(src_wav, dst_path):
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print("Usage: python tts_md_to_audio.py <input.md> <output.(wav|mp3|ogg|aac)>")
+        print("Usage: python cli.py <input.md> <output.(wav|mp3|ogg|aac)>")
         sys.exit(1)
 
     input_md = os.path.join(DATA_DIR, sys.argv[1])

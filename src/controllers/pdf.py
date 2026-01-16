@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 from tqdm import tqdm
 
 import src.helpers.latex_helper
+from src.helpers.html_helper import html_to_text
 from src.config import get_config
 from src.helpers import html_helper, latex_helper, text_helper
 from src.helpers.filepath_helper import generate_random_filename, get_abs_path, get_rel_path
@@ -26,6 +27,7 @@ from src.wrappers import (
 )
 from src.wrappers.docker_wrapper import ManagedDockerService, NoManagedService
 from src.wrappers.pandoc_wrapper import _run_pandoc_in_docker
+from src.wrappers.cosyvoice_wrapper import tts
 
 logger = logging.getLogger(__name__)
 
@@ -85,6 +87,7 @@ class PDFDocument:
     html_filename: str = None
     new_html_filename: str = None
     translated_html_filename: str = None
+    text_filename: str = None
     cover_image: str = None
     mobi_file_path: str = None
 
@@ -235,7 +238,12 @@ def get_pipeline():
             convert_to_mobi,
             ["translated_html_filename", "title", "author", "cover_image"],
             ["mobi_file_path"],
+            enabled=get_config().output_format in ["mobi", "epub"],
         ),
+        PipelineStage(html_to_text, ["translated_html_filename"], ["text_filename"],
+                      enabled=get_config().output_format in ["mp3", "acc", "ogg", "wav"]),
+        PipelineStage(tts, ["text_filename"], ["mobi_file_path"],
+                      enabled=get_config().output_format in ["mp3", "acc", "ogg", "wav"]),
     ]
 
 

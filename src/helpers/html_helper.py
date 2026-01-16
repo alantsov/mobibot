@@ -309,3 +309,20 @@ def extract_cover_from_html(html_filename):
         if "src" in img.attrs and img["src"]:
             return img["src"]
     return None
+
+
+def html_to_text(html_filename):
+    with open(get_abs_path(html_filename)) as f:
+        html_content = f.read()
+    soup = BeautifulSoup(html_content, "html.parser")
+    text = ""
+    for tag in soup.find_all():
+        if tag.name in ["p"]:
+            parents_name =  list(map(lambda t: t.name, tag.parents))
+            if 'figcaption' in parents_name or 'figure' in parents_name:
+                continue
+            text += tag.get_text(strip=True) + "\n"
+    text_filename = generate_random_filename("text_from_html", "txt")
+    with open(get_abs_path(text_filename), "w") as f:
+        f.write(text)
+    return text_filename

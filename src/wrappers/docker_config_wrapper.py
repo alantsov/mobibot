@@ -141,6 +141,13 @@ def get_containers_config(svc: str) -> DockerConfig:
         image_name=f"{PROJECT_PREFIX}/tiktoken:1.0.0",
     )
 
+    cosyvoice_config = DockerConfig(
+        name="cosyvoice",
+        image_name=f"{PROJECT_PREFIX}/cosyvoice:1.0.0",
+        volumes=[f"{DATA_DIR}:/data", f"{MODELS_DIR}:/models"],
+        use_gpu=True,
+    )
+
     containers_configs = {
         "calibre": calibre_config,
         "clip_select": clip_select_config,
@@ -157,5 +164,6 @@ def get_containers_config(svc: str) -> DockerConfig:
         "readability": readability_config,
         "languagetool": languagetool_config,
         "tiktoken": tiktoken_config,
+        "cosyvoice": cosyvoice_config,
     }
     return containers_configs[svc]

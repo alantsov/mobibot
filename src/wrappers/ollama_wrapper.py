@@ -251,7 +251,8 @@ def generate_title(text, title, lang="ru"):
     class TitleInfo(BaseModel):
         title: str
 
-    language = {"ru": "russian", "en": "english"}[lang]
+    languages = {"ru": "russian", "en": "english"}
+    language = languages.get(lang, lang)
     text = text.replace("\n\n", "\n")
     prompt = f"""generate one line title for text below, do not comment text itself, provide only title, do not use punctuation.
 do not use markdown, use only text.

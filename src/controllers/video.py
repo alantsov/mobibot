@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from tqdm import tqdm
 
 import src.helpers.html_helper as html_helper
+from src.helpers.html_helper import html_to_text
 import src.helpers.text_helper as text_helper
 import src.wrappers.ollama_wrapper as ollama_wrapper
 import src.wrappers.whisperx_wrapper
@@ -39,6 +40,7 @@ from src.wrappers.ffmpeg_wrapper import (
     _run_in_ffmpeg_container,
 )
 from src.wrappers.ollama_wrapper import generate_title
+from src.wrappers.cosyvoice_wrapper import tts
 
 logger = logging.getLogger(__name__)
 
@@ -104,6 +106,7 @@ class Video:
     cover_filename: str | None = None
     html_filename: str | None = None
     translated_html_filename: str | None = None
+    text_filename: str | None = None
     output_filename: str | None = None
     prepared_cover: str | None = None
     cwd: str | None = "data"
@@ -409,7 +412,12 @@ def get_pipeline():
                 "title",
             ],
             ["mobi_filename"],
+            enabled=get_config().output_format in ["mobi", "azw3", "epub"]
         ),
+        PipelineStage(html_to_text, ["html_filename"], ["text_filename"],
+                      enabled=get_config().output_format in ["mp3", "acc", "ogg", "wav"]),
+        PipelineStage(tts, ["text_filename"], ["mobi_filename"],
+                      enabled=get_config().output_format in ["mp3", "acc", "ogg", "wav"]),
     ]
 
 

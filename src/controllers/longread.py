@@ -15,6 +15,7 @@ from src.helpers.html_helper import (
     preprocess_generic_page,
     render_latex,
     translate_html_file,
+    html_to_text
 )
 from src.loaders import longread_loader
 from src.pipeline import (
@@ -28,6 +29,7 @@ from src.pipeline import (
 )
 from src.wrappers import calibre_wrapper, ollama_wrapper, pillow_wrapper, readability_wrapper
 from src.wrappers.docker_wrapper import ManagedDockerService, NoManagedService
+from src.wrappers.cosyvoice_wrapper import tts
 
 
 @dataclass
@@ -42,6 +44,7 @@ class Longread:
     latex_filename: str | None = None
     processed_filename: str | None = None
     translated_html_filename: str | None = None
+    text_filename: str | None = None
     cover_url: str | None = None
     title: str | None = None
     author: str | None = None
@@ -159,7 +162,12 @@ def get_pipeline():
             convert_to_mobi,
             ["translated_html_filename", "title", "cover_url", "author"],
             ["mobi_file_path"],
+            enabled=get_config().output_format in ["mobi", 'epub']
         ),
+        PipelineStage(html_to_text, ["translated_html_filename"], ["text_filename"],
+                      enabled=get_config().output_format in ["mp3", "acc", "ogg", "wav"]),
+        PipelineStage(tts, ["text_filename"], ["mobi_file_path"],
+                      enabled=get_config().output_format in ["mp3", "acc", "ogg", "wav"]),
     ]
 
 
