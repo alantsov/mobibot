@@ -8,3 +8,8 @@
 /models/
 /config.yaml
 __pycache__
+/mobi_bot.egg-info
+containers/cosyvoice/models
+containers/cosyvoice/data
+containers/silero_tts/models
+containers/silero_tts/data
