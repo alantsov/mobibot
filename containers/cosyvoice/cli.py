@@ -5,12 +5,18 @@ sys.path.append('third_party/Matcha-TTS')
 from cosyvoice.cli.cosyvoice import AutoModel
 import torchaudio
 import torch
+from huggingface_hub import snapshot_download
 
-MODEL_DIR = "/models"
-DATA_DIR = "/data"
+MODEL_DIR = os.getenv("MODEL_DIR", "/models")
+DATA_DIR = os.getenv("DATA_DIR", "/data")
 
 def tts(text, output_path):
-    cosyvoice = AutoModel(model_dir='pretrained_models/Fun-CosyVoice3-0.5B')
+    model_path = os.path.join(MODEL_DIR, 'Fun-CosyVoice3-0.5B')
+    if not os.path.exists(model_path):
+        print(f"Downloading model to {model_path}...")
+        snapshot_download('FunAudioLLM/Fun-CosyVoice3-0.5B-2512', local_dir=model_path)
+    
+    cosyvoice = AutoModel(model_dir=model_path)
 
     pause_sec = 0.6
     silence = torch.zeros(
@@ -19,9 +25,9 @@ def tts(text, output_path):
 
     tts_chunks = []
     for line in text.split('\n'):
-        if len(line) > 1:
+        if len(line.strip()) > 0:
             for i, j in enumerate(cosyvoice.inference_cross_lingual('You are a helpful assistant. speak clearly without background noise<|endofprompt|>'+line,
-                                                                './asset/prompt_audio_3_ru.wav', stream=False)):
+                                                                '/app/asset/prompt_audio_3_ru.wav', stream=False)):
                 tts_chunks.append(j['tts_speech'])
             tts_chunks.append(silence)
     tts_speach = torch.cat(tts_chunks, dim=1)
