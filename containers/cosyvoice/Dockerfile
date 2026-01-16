@@ -1,6 +1,7 @@
-FROM pytorch/pytorch:2.1.2-cuda12.1-cudnn8-runtime
+FROM pytorch/pytorch:2.1.2-cuda12.1-cudnn8-devel
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV CUDA_HOME=/usr/local/cuda
 
 RUN apt-get update && apt-get install -y \
     git \
