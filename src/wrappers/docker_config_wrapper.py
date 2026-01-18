@@ -95,7 +95,7 @@ def get_containers_config(svc: str) -> DockerConfig:
 
     whisperx_config = DockerConfig(
         name="whisperX",
-        image_name=f"{PROJECT_PREFIX}/whisperx:1.0.0",
+        image_name=f"{PROJECT_PREFIX}/whisperx:1.0.1",
         volumes=[f"{DATA_DIR}:/data", f"{MODELS_DIR}:/models"],
         use_gpu=True,
     )

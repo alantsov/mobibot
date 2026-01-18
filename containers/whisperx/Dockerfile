@@ -14,5 +14,6 @@ ENV TRANSFORMERS_CACHE=/models/hf
 ENV TORCH_HOME=/models/torch
 ENV XDG_CACHE_HOME=/models/xdg
 ENV HF_HOME="$TRANSFORMERS_CACHE"
+ENV MPLCONFIGDIR=/tmp/matplotlib
 
 ENTRYPOINT ["whisperx"]
